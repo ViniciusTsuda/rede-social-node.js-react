@@ -57,3 +57,6 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+#guide
+FASE_3_POSTS_GUIDE.md
