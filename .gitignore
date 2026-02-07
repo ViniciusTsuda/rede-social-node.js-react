@@ -60,3 +60,6 @@ logs/
 
 #guide
 FASE_3_POSTS_GUIDE.md
+
+# Prisma Config
+prisma/.env

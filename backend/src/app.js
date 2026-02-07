@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
-const sequelize = require('./config/database');
-const User = require('./models/User');
 
 const app = express();
 
@@ -45,15 +43,9 @@ app.use((err, req, res, next) => {
 // Sincronizar banco de dados e iniciar servidor
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ force: false }).then(() => {
-  console.log('Banco de dados sincronizado!');
-  
-  app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
-  });
-}).catch((error) => {
-  console.error('Erro ao sincronizar banco de dados:', error);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log('Conectado ao banco de dados MySQL');
 });
 
 module.exports = app;

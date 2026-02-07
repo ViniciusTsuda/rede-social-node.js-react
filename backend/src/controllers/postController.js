@@ -26,20 +26,11 @@ exports.createPost = async (req, res) => {
     const imageUrl = `/uploads/${req.file.filename}`;
 
     // Criar post
-    const newPost = await Post.create({
-      user_id: userId,
-      image_url: imageUrl,
-      description: description || null,
-    });
-
-    // Buscar dados do autor
-    const postWithAuthor = await Post.findByPk(newPost.id, {
-      include: [{ model: User, as: 'author', attributes: ['id', 'name', 'avatar'] }],
-    });
+    const newPost = await Post.create(userId, imageUrl, description || null);
 
     res.status(201).json({
       message: 'Post criado com sucesso',
-      post: postWithAuthor,
+      post: newPost,
     });
   } catch (error) {
     // Deletar arquivo em caso de erro
@@ -54,10 +45,7 @@ exports.createPost = async (req, res) => {
 // Listar todos os posts
 exports.getPosts = async (req, res) => {
   try {
-    const posts = await Post.findAll({
-      include: [{ model: User, as: 'author', attributes: ['id', 'name', 'avatar'] }],
-      order: [['createdAt', 'DESC']],
-    });
+    const posts = await Post.findAll();
 
     res.status(200).json({
       message: 'Posts recuperados com sucesso',
@@ -75,9 +63,7 @@ exports.getPostById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const post = await Post.findByPk(id, {
-      include: [{ model: User, as: 'author', attributes: ['id', 'name', 'avatar'] }],
-    });
+    const post = await Post.findById(id);
 
     if (!post) {
       return res.status(404).json({ message: 'Post não encontrado' });
@@ -99,7 +85,7 @@ exports.deletePost = async (req, res) => {
     const { id } = req.params;
     const userId = req.userId;
 
-    const post = await Post.findByPk(id);
+    const post = await Post.findById(id);
 
     if (!post) {
       return res.status(404).json({ message: 'Post não encontrado' });
@@ -117,7 +103,7 @@ exports.deletePost = async (req, res) => {
     }
 
     // Deletar post
-    await post.destroy();
+    await Post.deleteById(id);
 
     res.status(200).json({
       message: 'Post deletado com sucesso',

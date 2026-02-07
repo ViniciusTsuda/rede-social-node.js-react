@@ -27,21 +27,13 @@ exports.register = async (req, res) => {
     }
 
     // Verificar se o usuário já existe
-    const userExists = await User.findOne({ where: { email } });
+    const userExists = await User.findByEmail(email);
     if (userExists) {
       return res.status(409).json({ message: 'Email já cadastrado' });
     }
 
-    // Hash da senha
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Criar novo usuário
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    // Criar novo usuário (hashedPassword é gerado dentro do método)
+    const newUser = await User.create(name, email, password);
 
     // Gerar token
     const token = generateToken(newUser.id);
@@ -72,13 +64,13 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     // Buscar usuário pelo email
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findByEmail(email);
     if (!user) {
       return res.status(401).json({ message: 'Email ou senha inválidos' });
     }
 
     // Comparar senhas
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await User.verifyPassword(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Email ou senha inválidos' });
     }

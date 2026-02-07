@@ -1,40 +1,71 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const User = require('./User');
+const prisma = require('../config/prisma');
 
-const Post = sequelize.define(
-  'Post',
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    user_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: User,
-        key: 'id',
+class Post {
+  static async create(userId, imageUrl, description) {
+    return prisma.posts.create({
+      data: {
+        user_id: userId,
+        image_url: imageUrl,
+        description,
       },
-      onDelete: 'CASCADE',
-    },
-    image_url: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-  },
-  {
-    tableName: 'posts',
-    timestamps: true,
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    });
   }
-);
 
-// Definir relacionamento com User
-Post.belongsTo(User, { foreignKey: 'user_id', as: 'author' });
+  static async findAll() {
+    return prisma.posts.findMany({
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  static async findById(id) {
+    return prisma.posts.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        users: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async deleteById(id) {
+    return prisma.posts.delete({
+      where: { id: parseInt(id) },
+    });
+  }
+
+  static async findByUserId(userId) {
+    return prisma.posts.findMany({
+      where: { user_id: userId },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+}
 
 module.exports = Post;

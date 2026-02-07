@@ -1,39 +1,39 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const prisma = require('../config/prisma');
+const bcrypt = require('bcrypt');
 
-const User = sequelize.define(
-  'User',
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true,
+class User {
+  static async create(name, email, password) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    return prisma.users.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
       },
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    avatar: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-  },
-  {
-    tableName: 'users',
-    timestamps: true,
+    });
   }
-);
+
+  static async findByEmail(email) {
+    return prisma.users.findUnique({
+      where: { email },
+    });
+  }
+
+  static async findById(id) {
+    return prisma.users.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+      },
+    });
+  }
+
+  static async verifyPassword(plainPassword, hashedPassword) {
+    return bcrypt.compare(plainPassword, hashedPassword);
+  }
+}
 
 module.exports = User;
